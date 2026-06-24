@@ -1,7 +1,19 @@
 import { PrismaClient, UserRole } from "../src/generated/prisma";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { loadEnvFile } from "node:process";
 import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient();
+loadEnvFile(".env");
+
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is required to seed the database.");
+}
+
+const prisma = new PrismaClient({
+  adapter: new PrismaPg(databaseUrl),
+});
 
 async function main() {
   const passwordHash = await bcrypt.hash("Admin@123456", 12);
