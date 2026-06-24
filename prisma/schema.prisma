@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  ACCOUNTANT
+  VIEWER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum PartyType {
+  CUSTOMER
+  SUPPLIER
+  BOTH
+}
+
+enum DebtType {
+  RECEIVABLE
+  PAYABLE
+}
+
+enum DebtStatus {
+  OPEN
+  PARTIAL
+  PAID
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  OTHER
+}
+
+enum CollectionStatus {
+  NEW
+  CONTACTED
+  PROMISED
+  DISPUTED
+  ESCALATED
+}
+
+model User {
+  id            String     @id @default(cuid())
+  name          String
+  email         String     @unique
+  passwordHash  String?
+  role          UserRole   @default(VIEWER)
+  status        UserStatus @default(ACTIVE)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  parties       Party[]    @relation("PartyCreatedBy")
+  assignedParties Party[]  @relation("PartyAssignedTo")
+  debts         Debt[]     @relation("DebtCreatedBy")
+  assignedDebts Debt[]     @relation("DebtAssignedTo")
+  payments      Payment[]  @relation("PaymentCreatedBy")
+  auditLogs     AuditLog[] @relation("AuditActor")
+}
+
+model Party {
+  id          String    @id @default(cuid())
+  type        PartyType
+  code        String?   @unique
+  name        String
+  phone       String?
+  email       String?
+  taxCode     String?
+  address     String?
+  note        String?
+  creditLimit Decimal?   @db.Decimal(18, 2)
+  isActive    Boolean   @default(true)
+  createdById String?
+  assignedToId String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  createdBy   User?     @relation("PartyCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  assignedTo  User?     @relation("PartyAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  debts       Debt[]
+
+  @@index([name])
+  @@index([type])
+  @@index([isActive])
+  @@index([assignedToId])
+}
+
+model Debt {
+  id             String     @id @default(cuid())
+  code           String     @unique
+  type           DebtType
+  partyId        String
+  assignedToId   String?
+  title          String
+  invoiceNo      String?
+  orderNo        String?
+  contractNo     String?
+  poNo           String?
+  description    String?
+  originalAmount Decimal    @db.Decimal(18, 2)
+  paidAmount     Decimal    @default(0) @db.Decimal(18, 2)
+  currency       String     @default("VND")
+  issueDate      DateTime
+  dueDate        DateTime
+  status         DebtStatus @default(OPEN)
+  collectionStatus CollectionStatus @default(NEW)
+  nextFollowUpAt DateTime?
+  followUpNote   String?
+  createdById    String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  party          Party      @relation(fields: [partyId], references: [id], onDelete: Restrict)
+  assignedTo     User?      @relation("DebtAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  createdBy      User?      @relation("DebtCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  payments       Payment[]
+
+  @@index([type])
+  @@index([status])
+  @@index([collectionStatus])
+  @@index([dueDate])
+  @@index([nextFollowUpAt])
+  @@index([partyId])
+  @@index([assignedToId])
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  debtId      String
+  amount      Decimal       @db.Decimal(18, 2)
+  paidAt      DateTime
+  method      PaymentMethod @default(BANK_TRANSFER)
+  referenceNo String?
+  note        String?
+  createdById String?
+  createdAt   DateTime      @default(now())
+
+  debt        Debt          @relation(fields: [debtId], references: [id], onDelete: Restrict)
+  createdBy   User?         @relation("PaymentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([debtId])
+  @@index([paidAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  entityType String
+  entityId   String
+  action     String
+  before     Json?
+  after      Json?
+  createdAt  DateTime @default(now())
+
+  actor      User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+}
