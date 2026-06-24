@@ -1,7 +1,7 @@
 import { PrismaClient, UserRole } from "../src/generated/prisma";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { loadEnvFile } from "node:process";
-import bcrypt from "bcryptjs";
+import * as bcrypt from "bcryptjs";
 
 loadEnvFile(".env");
 
@@ -22,6 +22,7 @@ async function main() {
     where: { email: "admin@debtflow.local" },
     update: {
       name: "Debt Flow Admin",
+      phone: "0900000000",
       role: UserRole.ADMIN,
       status: "ACTIVE",
       passwordHash,
@@ -29,6 +30,7 @@ async function main() {
     create: {
       name: "Debt Flow Admin",
       email: "admin@debtflow.local",
+      phone: "0900000000",
       role: UserRole.ADMIN,
       passwordHash,
     },

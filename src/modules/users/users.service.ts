@@ -9,7 +9,7 @@ export class UsersService {
   list() {
     return this.prisma.user.findMany({
       orderBy: { createdAt: "desc" },
-      select: { id: true, name: true, email: true, role: true, status: true, createdAt: true },
+      select: { id: true, name: true, email: true, phone: true, role: true, status: true, createdAt: true },
     });
   }
 
@@ -18,10 +18,11 @@ export class UsersService {
       where: { id },
       data: {
         name: body.name == null ? undefined : String(body.name),
+        phone: body.phone == null ? undefined : String(body.phone),
         role: body.role as UserRole | undefined,
         status: body.status as UserStatus | undefined,
       },
-      select: { id: true, name: true, email: true, role: true, status: true },
+      select: { id: true, name: true, email: true, phone: true, role: true, status: true },
     });
   }
 
@@ -29,7 +30,7 @@ export class UsersService {
     return this.prisma.user.update({
       where: { id },
       data: { status: UserStatus.INACTIVE },
-      select: { id: true, name: true, email: true, role: true, status: true },
+      select: { id: true, name: true, email: true, phone: true, role: true, status: true },
     });
   }
 }
