@@ -1,6 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import { DebtsService } from "./debts.service";
 import { PaymentsService } from "../payments/payments.service";
+import { CreateDebtDto } from "./dto/create-debt.dto";
+import { QueryDebtsDto } from "./dto/query-debts.dto";
+import { UpdateDebtCollectionDto } from "./dto/update-debt-collection.dto";
+import { CreatePaymentDto } from "../payments/dto/create-payment.dto";
 
 @Controller("debts")
 export class DebtsController {
@@ -10,12 +14,12 @@ export class DebtsController {
   ) {}
 
   @Get()
-  list(@Query() query: Record<string, string | undefined>) {
+  list(@Query() query: QueryDebtsDto) {
     return this.debtsService.list(query);
   }
 
   @Post()
-  create(@Body() body: Record<string, unknown>) {
+  create(@Body() body: CreateDebtDto) {
     return this.debtsService.create(body);
   }
 
@@ -25,7 +29,7 @@ export class DebtsController {
   }
 
   @Patch(":id")
-  updateCollection(@Param("id") id: string, @Body() body: Record<string, unknown>) {
+  updateCollection(@Param("id") id: string, @Body() body: UpdateDebtCollectionDto) {
     return this.debtsService.updateCollection(id, body);
   }
 
@@ -35,7 +39,7 @@ export class DebtsController {
   }
 
   @Post(":id/payments")
-  createPayment(@Param("id") id: string, @Body() body: Record<string, unknown>) {
+  createPayment(@Param("id") id: string, @Body() body: CreatePaymentDto) {
     return this.paymentsService.create(id, body);
   }
 }

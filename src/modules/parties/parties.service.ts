@@ -1,14 +1,17 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { PartyType, Prisma } from "../../generated/prisma";
 import { PrismaService } from "../../database/prisma.service";
+import { CreatePartyDto } from "./dto/create-party.dto";
+import { QueryPartiesDto } from "./dto/query-parties.dto";
+import { UpdatePartyDto } from "./dto/update-party.dto";
 
 @Injectable()
 export class PartiesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(query: Record<string, string | undefined>) {
-    const page = Math.max(1, Number(query.page ?? 1));
-    const pageSize = Math.min(100, Math.max(1, Number(query.pageSize ?? 20)));
+  async list(query: QueryPartiesDto) {
+    const page = query.page ?? 1;
+    const pageSize = query.pageSize ?? 20;
     const where: Prisma.PartyWhereInput = {
       isActive: true,
       ...(query.type ? { type: query.type as PartyType } : {}),
@@ -53,13 +56,13 @@ export class PartiesService {
     });
   }
 
-  create(input: Record<string, unknown>) {
+  create(input: CreatePartyDto) {
     return this.prisma.party.create({
       data: this.toPartyData(input),
     });
   }
 
-  update(id: string, input: Record<string, unknown>) {
+  update(id: string, input: UpdatePartyDto) {
     return this.prisma.party.update({
       where: { id },
       data: this.toPartyData(input),
@@ -78,7 +81,7 @@ export class PartiesService {
     return this.prisma.party.update({ where: { id }, data: { isActive: false } });
   }
 
-  private toPartyData(input: Record<string, unknown>): Prisma.PartyUncheckedCreateInput {
+  private toPartyData(input: CreatePartyDto | UpdatePartyDto): Prisma.PartyUncheckedCreateInput {
     return {
       type: (input.type as PartyType) ?? "CUSTOMER",
       code: this.nullable(input.code),

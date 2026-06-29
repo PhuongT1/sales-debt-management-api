@@ -1,14 +1,17 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { CollectionStatus, DebtStatus, DebtType, Prisma } from "../../generated/prisma";
 import { PrismaService } from "../../database/prisma.service";
+import { CreateDebtDto } from "./dto/create-debt.dto";
+import { QueryDebtsDto } from "./dto/query-debts.dto";
+import { UpdateDebtCollectionDto } from "./dto/update-debt-collection.dto";
 
 @Injectable()
 export class DebtsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(query: Record<string, string | undefined>) {
-    const page = Math.max(1, Number(query.page ?? 1));
-    const pageSize = Math.min(1000, Math.max(1, Number(query.pageSize ?? 20)));
+  async list(query: QueryDebtsDto) {
+    const page = query.page ?? 1;
+    const pageSize = query.pageSize ?? 20;
     const now = new Date();
     const startOfToday = new Date(now);
     startOfToday.setHours(0, 0, 0, 0);
@@ -72,9 +75,9 @@ export class DebtsService {
     });
   }
 
-  async create(input: Record<string, unknown>) {
-    const issueDate = new Date(String(input.issueDate));
-    const dueDate = new Date(String(input.dueDate));
+  async create(input: CreateDebtDto) {
+    const issueDate = new Date(input.issueDate);
+    const dueDate = new Date(input.dueDate);
 
     if (dueDate < issueDate) {
       throw new BadRequestException("Ngày đến hạn không được trước ngày phát sinh");
@@ -83,10 +86,10 @@ export class DebtsService {
     return this.prisma.debt.create({
       data: {
         code: await this.nextDebtCode(),
-        type: input.type as DebtType,
-        partyId: String(input.partyId),
+        type: input.type,
+        partyId: input.partyId,
         assignedToId: this.nullable(input.assignedToId),
-        title: String(input.title ?? "").trim(),
+        title: input.title.trim(),
         invoiceNo: this.nullable(input.invoiceNo),
         orderNo: this.nullable(input.orderNo),
         contractNo: this.nullable(input.contractNo),
@@ -105,13 +108,13 @@ export class DebtsService {
     });
   }
 
-  updateCollection(id: string, input: Record<string, unknown>) {
+  updateCollection(id: string, input: UpdateDebtCollectionDto) {
     return this.prisma.debt.update({
       where: { id },
       data: {
         assignedToId: this.nullable(input.assignedToId),
-        collectionStatus: input.collectionStatus as CollectionStatus | undefined,
-        nextFollowUpAt: input.nextFollowUpAt ? new Date(String(input.nextFollowUpAt)) : null,
+        collectionStatus: input.collectionStatus,
+        nextFollowUpAt: input.nextFollowUpAt ? new Date(input.nextFollowUpAt) : null,
         followUpNote: this.nullable(input.followUpNote),
         invoiceNo: this.nullable(input.invoiceNo),
         orderNo: this.nullable(input.orderNo),

@@ -10,7 +10,7 @@ import { JwtAuthGuard, JwtAuthPayload } from "./jwt-auth.guard";
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @ApiOperation({ summary: "Đăng nhập bằng email/số điện thoại và mật khẩu" })
+  @ApiOperation({ summary: "Đăng nhập bằng email và mật khẩu" })
   @ApiBody({ type: LoginDto })
   @ApiUnauthorizedResponse({ description: "Sai tài khoản, mật khẩu hoặc tài khoản bị khóa." })
   @Post("login")

@@ -8,8 +8,7 @@ export class PrismaService extends PrismaClient implements OnModuleDestroy {
     const databaseUrl = process.env.DATABASE_URL;
 
     if (!databaseUrl) {
-      super();
-      return;
+      throw new Error("DATABASE_URL is required to initialize PrismaClient.");
     }
 
     super({

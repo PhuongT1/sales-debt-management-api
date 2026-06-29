@@ -2,6 +2,7 @@ import { INestApplication, RequestMethod, ValidationPipe } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { PrismaExceptionFilter } from "./common/filters/prisma-exception.filter";
+import { createValidationException } from "./common/validation/validation-exception.factory";
 
 export function configureApp(app: INestApplication) {
   const config = app.get(ConfigService);
@@ -21,6 +22,8 @@ export function configureApp(app: INestApplication) {
       whitelist: true,
       transform: true,
       forbidNonWhitelisted: true,
+      stopAtFirstError: true,
+      exceptionFactory: createValidationException,
     }),
   );
   app.useGlobalFilters(new PrismaExceptionFilter());
@@ -49,7 +52,8 @@ function renderSwaggerHtml() {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sales Debt Management API</title>
+    <title>Swagger UI - Sales Debt Management API</title>
+    <link rel="icon" href="https://unpkg.com/swagger-ui-dist@5.17.14/favicon-32x32.png" />
     <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css" />
   </head>
   <body>

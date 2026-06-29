@@ -7,7 +7,7 @@ export class ReportsService {
   constructor(private readonly debtsService: DebtsService) {}
 
   async aging(query: Record<string, string | undefined>) {
-    const debts = await this.debtsService.list({ ...query, page: "1", pageSize: "1000" });
+    const debts = await this.debtsService.list({ ...query, page: 1, pageSize: 1000 });
     const now = new Date();
     const buckets = {
       notDue: { label: "Chưa đến hạn", amount: new Prisma.Decimal(0), count: 0 },

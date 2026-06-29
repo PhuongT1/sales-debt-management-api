@@ -1,12 +1,14 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { DebtStatus, PaymentMethod, Prisma } from "../../generated/prisma";
 import { PrismaService } from "../../database/prisma.service";
+import { CreatePaymentDto } from "./dto/create-payment.dto";
+import { QueryPaymentsDto } from "./dto/query-payments.dto";
 
 @Injectable()
 export class PaymentsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(debtId: string, input: Record<string, unknown>) {
+  async create(debtId: string, input: CreatePaymentDto) {
     return this.prisma.$transaction(async (tx) => {
       const debt = await tx.debt.findUniqueOrThrow({ where: { id: debtId } });
 
@@ -17,8 +19,12 @@ export class PaymentsService {
         throw new BadRequestException("Công nợ đã thanh toán đủ");
       }
 
-      const amount = new Prisma.Decimal(String(input.amount));
+      const amount = new Prisma.Decimal(input.amount);
       const remaining = debt.originalAmount.minus(debt.paidAmount);
+
+      if (amount.lessThanOrEqualTo(0)) {
+        throw new BadRequestException("Số tiền thanh toán phải lớn hơn 0");
+      }
 
       if (amount.greaterThan(remaining)) {
         throw new BadRequestException("Số tiền thanh toán vượt quá số dư còn lại");
@@ -31,8 +37,8 @@ export class PaymentsService {
         data: {
           debtId,
           amount,
-          paidAt: new Date(String(input.paidAt)),
-          method: (input.method as PaymentMethod) ?? PaymentMethod.BANK_TRANSFER,
+          paidAt: new Date(input.paidAt),
+          method: input.method ?? PaymentMethod.BANK_TRANSFER,
           referenceNo: this.nullable(input.referenceNo),
           note: this.nullable(input.note),
         },
@@ -48,18 +54,23 @@ export class PaymentsService {
     });
   }
 
-  async list(query: Record<string, string | undefined>) {
-    const page = Math.max(1, Number(query.page ?? 1));
-    const pageSize = Math.min(100, Math.max(1, Number(query.pageSize ?? 20)));
+  async list(query: QueryPaymentsDto) {
+    const page = query.page ?? 1;
+    const pageSize = query.pageSize ?? 20;
+    const where: Prisma.PaymentWhereInput = {
+      ...(query.debtId ? { debtId: query.debtId } : {}),
+      ...(query.partyId ? { debt: { partyId: query.partyId } } : {}),
+    };
 
     const [items, total] = await this.prisma.$transaction([
       this.prisma.payment.findMany({
+        where,
         orderBy: { paidAt: "desc" },
         skip: (page - 1) * pageSize,
         take: pageSize,
         include: { debt: { include: { party: true } }, createdBy: { select: { id: true, name: true, email: true } } },
       }),
-      this.prisma.payment.count(),
+      this.prisma.payment.count({ where }),
     ]);
 
     return { items, total, page, pageSize };

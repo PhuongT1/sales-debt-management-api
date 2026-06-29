@@ -8,8 +8,15 @@
     "build": "pnpm prisma:generate && nest build",
     "lint": "eslint \"src/**/*.ts\"",
     "prisma:generate": "prisma generate",
+    "prisma:validate": "prisma validate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
+    "db:migrate": "prisma migrate dev && pnpm prisma:generate",
+    "db:sync": "prisma migrate dev && pnpm prisma:generate",
+    "db:deploy": "prisma migrate deploy && pnpm prisma:generate",
+    "db:generate": "pnpm prisma:generate",
+    "db:check": "pnpm prisma:validate && pnpm prisma:generate",
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {

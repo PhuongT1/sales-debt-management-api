@@ -8,7 +8,7 @@ export class ExportsController {
 
   @Get("debts")
   async debts(@Query() query: Record<string, string | undefined>, @Res() response: any) {
-    const debts = await this.debtsService.list({ ...query, page: "1", pageSize: "1000" });
+    const debts = await this.debtsService.list({ ...query, page: 1, pageSize: 1000 });
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Cong no");
     sheet.columns = [
