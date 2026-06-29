@@ -1,0 +1,31 @@
+type EnvConfig = Record<string, unknown>;
+
+const requiredEnvKeys = ["DATABASE_URL", "JWT_SECRET"] as const;
+
+export function validateEnv(config: EnvConfig) {
+  const missingKeys = requiredEnvKeys.filter((key) => !String(config[key] ?? "").trim());
+
+  if (missingKeys.length > 0) {
+    throw new Error(`Missing required environment variables: ${missingKeys.join(", ")}`);
+  }
+
+  if (config.DATABASE_URL && !isPostgresUrl(String(config.DATABASE_URL))) {
+    throw new Error("DATABASE_URL must be a valid PostgreSQL connection string.");
+  }
+
+  if (config.DIRECT_URL && !isPostgresUrl(String(config.DIRECT_URL))) {
+    throw new Error("DIRECT_URL must be a valid PostgreSQL connection string.");
+  }
+
+  const jwtSecret = String(config.JWT_SECRET);
+
+  if (jwtSecret.length < 24) {
+    throw new Error("JWT_SECRET must be at least 24 characters.");
+  }
+
+  return config;
+}
+
+function isPostgresUrl(value: string) {
+  return value.startsWith("postgresql://") || value.startsWith("postgres://");
+}
