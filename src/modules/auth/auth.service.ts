@@ -10,7 +10,6 @@ export type AuthUser = {
   id: string;
   name: string;
   email: string;
-  phone: string | null;
   role: string;
   status: string;
 };
@@ -27,6 +26,14 @@ export class AuthService {
     const email = input.email.trim().toLowerCase();
     const user = await this.prisma.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        passwordHash: true,
+        role: true,
+        status: true,
+      },
     });
 
     if (!user?.passwordHash) {
@@ -67,6 +74,13 @@ export class AuthService {
   async getCurrentUser(userId: string) {
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        status: true,
+      },
     });
 
     return this.toSafeUser(user);
@@ -76,7 +90,6 @@ export class AuthService {
     id: string;
     name: string;
     email: string;
-    phone: string | null;
     role: string;
     status: string;
   }): AuthUser {
@@ -84,7 +97,6 @@ export class AuthService {
       id: user.id,
       name: user.name,
       email: user.email,
-      phone: user.phone,
       role: user.role,
       status: user.status,
     };
