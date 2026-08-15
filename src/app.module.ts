@@ -1,32 +1,18 @@
-import { Module } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
-import { validateEnv } from "./config/env.validation";
-import { DatabaseModule } from "./database/database.module";
-import { AuthModule } from "./modules/auth/auth.module";
-import { UsersModule } from "./modules/users/users.module";
-import { PartiesModule } from "./modules/parties/parties.module";
-import { DebtsModule } from "./modules/debts/debts.module";
-import { PaymentsModule } from "./modules/payments/payments.module";
-import { DashboardModule } from "./modules/dashboard/dashboard.module";
-import { ReportsModule } from "./modules/reports/reports.module";
-import { ExportsModule } from "./modules/exports/exports.module";
-import { ImportsModule } from "./modules/imports/imports.module";
-import { AuditLogsModule } from "./modules/audit-logs/audit-logs.module";
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from '@auth/auth.module';
+import { validateEnv } from '@config/env.validation';
+import { DatabaseModule } from '@database/database.module';
+import { ProtectedModule } from '@modules/protected/protected.module';
+import { PublicModule } from '@modules/public/public.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
     DatabaseModule,
     AuthModule,
-    UsersModule,
-    PartiesModule,
-    DebtsModule,
-    PaymentsModule,
-    DashboardModule,
-    ReportsModule,
-    ExportsModule,
-    ImportsModule,
-    AuditLogsModule,
+    PublicModule,
+    ProtectedModule,
   ],
 })
 export class AppModule {}

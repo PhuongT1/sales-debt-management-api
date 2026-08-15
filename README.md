@@ -1,40 +1,79 @@
 # Sales Debt Management API
 
-NestJS backend for the Sales Debt Management product.
+NestJS backend API for Debt Flow / Sales Debt Management.
 
-## Quick Start
+## Run Backend
+
+First setup:
 
 ```bash
+npm install
 cp .env.example .env
-pnpm install
-pnpm prisma:generate
-pnpm prisma:migrate
-pnpm db:seed
-pnpm dev
+npm run setup:dev
 ```
 
-Default API base URL:
+Daily development:
+
+```bash
+npm run dev
+```
+
+`npm run dev` generates Prisma Client, then starts NestJS in watch mode.
+
+## Important Links
+
+Open these after the backend starts:
 
 ```txt
-http://localhost:4000/api
+API base URL:  http://localhost:4000/api
+Swagger UI:    http://localhost:4000/docs
+OpenAPI JSON:  http://localhost:4000/docs-json
 ```
 
-Swagger docs:
+Frontend API env:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:4000/api
+```
+
+## Default Login
+
+Created by `npm run db:seed`:
 
 ```txt
-http://localhost:4000/docs
+Email:    admin@debtflow.local
+Password: Admin@123456
+Role:     ADMIN
 ```
 
-## Current Scope
+## Common Commands
 
-Core APIs are scaffolded/ported for:
+| Command                  | Purpose                                                       |
+| ------------------------ | ------------------------------------------------------------- |
+| `npm run dev`            | Start backend in watch mode.                                  |
+| `npm run setup:dev`      | Migrate DB, seed admin user, then start backend.              |
+| `npm run build`          | Generate Prisma Client and build backend.                     |
+| `npm run db:migrate`     | Apply local Prisma migrations and regenerate client.          |
+| `npm run db:seed`        | Seed default admin user.                                      |
+| `npm run import:parties` | Import 100 demo customers/suppliers directly into PostgreSQL. |
+| `npm run db:check`       | Validate Prisma schema and regenerate client.                 |
+| `npm run prisma:studio`  | Open Prisma Studio.                                           |
 
-- parties
-- debts
-- payments
-- dashboard
-- reports aging
-- users
-- exports debts
+## More Docs
 
-Auth and import Excel endpoints are scaffolded and should be completed before switching production traffic fully from the Next.js API routes.
+- [Run Source](docs/run-source.md)
+- [API And Swagger](docs/api-and-swagger.md)
+- [Request Flow](docs/request-flow.md)
+- [Database Workflow](docs/database-workflow.md)
+- [Project Structure](docs/project-structure.md)
+- [Validation And Errors](docs/validation-and-errors.md)
+- [Import Aliases](docs/import-aliases.md)
+- [Project Codex Skills](.codex/skills/SKILLS.md)
+
+## Tech Stack
+
+- NestJS 11
+- Prisma 7
+- PostgreSQL / Neon
+- JWT auth
+- Swagger / OpenAPI

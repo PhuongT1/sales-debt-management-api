@@ -1,21 +1,51 @@
-# Database workflow
+# Database Workflow
 
-Prisma schema is the source of truth. Generated Prisma Client files in
-`src/generated/prisma` are local build artifacts and must not be committed.
+Prisma schema is the source of truth. This project uses multi-file Prisma schema.
 
-## Add a field or table
+## Folder Structure
 
-1. Edit `prisma/schema.prisma`.
-2. Create and apply a migration locally:
+```txt
+prisma/
+  schema.prisma
+  models/
+    user.prisma
+    party.prisma
+    debt.prisma
+    payment.prisma
+    audit-log.prisma
+  migrations/
+  seed.ts
+```
+
+`prisma/schema.prisma` contains only `generator` and `datasource`.
+
+Domain models and enums live under `prisma/models/`.
+
+Prisma config is in:
+
+```txt
+prisma.config.ts
+```
+
+The config points Prisma CLI to the folder:
+
+```ts
+schema: 'prisma/';
+```
+
+## Add A Field Or Table
+
+1. Edit a file in `prisma/models/`.
+2. Create and apply a migration:
 
 ```bash
-pnpm db:migrate --name add_party_segment
+npm run db:migrate
 ```
 
 3. Commit these files:
 
 ```txt
-prisma/schema.prisma
+prisma/models/*.prisma
 prisma/migrations/<timestamp>_<migration_name>/migration.sql
 ```
 
@@ -27,37 +57,50 @@ dist
 .env
 ```
 
-## After pulling teammate changes
+## After Pulling Teammate Changes
 
 ```bash
-pnpm install
-pnpm db:sync
+npm install
+npm run db:migrate
 ```
 
-`db:sync` applies pending local migrations and regenerates Prisma Client.
+This applies pending migrations and regenerates Prisma Client.
 
-## Production or Vercel deploy
-
-Run migrations against the production database before or during deployment:
+## Before Pushing Prisma Changes
 
 ```bash
-pnpm db:deploy
+npm run db:check
+npm run build
 ```
 
-Then deploy/build the API:
+## Production Deploy
+
+Apply migrations:
 
 ```bash
-pnpm build
+npm run db:deploy
 ```
 
-## Useful scripts
+Build the API:
 
 ```bash
-pnpm db:migrate --name <migration_name>  # dev creates a migration
-pnpm db:sync                             # teammate syncs local DB
-pnpm db:deploy                           # production applies migrations
-pnpm db:generate                         # regenerate Prisma Client only
-pnpm db:check                            # validate schema and generate client
-pnpm db:seed                             # seed test admin account
-pnpm prisma:studio                       # inspect database
+npm run build
 ```
+
+## Rules
+
+- Do not edit migrations that were already pushed or applied by other environments.
+- Every schema change should have a matching migration.
+- Keep enums near the domain that owns them.
+- Move an enum to a new domain file only when multiple domains truly share it.
+
+## Useful Commands
+
+| Command                   | Purpose                                          |
+| ------------------------- | ------------------------------------------------ |
+| `npm run db:migrate`      | Dev migration and Prisma generate.               |
+| `npm run db:deploy`       | Production migration deploy and Prisma generate. |
+| `npm run db:check`        | Validate schema and generate client.             |
+| `npm run prisma:generate` | Generate Prisma Client only.                     |
+| `npm run prisma:studio`   | Inspect database in Prisma Studio.               |
+| `npm run db:seed`         | Seed default admin user.                         |

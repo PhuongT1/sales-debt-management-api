@@ -1,0 +1,11 @@
+node_modules
+dist
+coverage
+.codex
+AGENTS.md
+.env
+.env.*
+src/generated
+prisma/migrations
+package-lock.json
+yarn.lock

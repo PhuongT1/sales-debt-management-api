@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, ValidationError } from "@nestjs/common";
+import { HttpException, HttpStatus, ValidationError } from '@nestjs/common';
 
 type ValidationErrorContext = {
   code?: string;
@@ -11,7 +11,7 @@ type ApiValidationError = {
   code: string;
 };
 
-const DEFAULT_VALIDATION_CODE = "VALIDATION_ERROR";
+const DEFAULT_VALIDATION_CODE = 'VALIDATION_ERROR';
 const DEFAULT_VALIDATION_STATUS = HttpStatus.BAD_REQUEST;
 
 export function createValidationException(errors: ValidationError[]) {
@@ -23,7 +23,7 @@ export function createValidationException(errors: ValidationError[]) {
     {
       success: false,
       code: firstError?.code ?? DEFAULT_VALIDATION_CODE,
-      message: firstError?.message ?? "Dữ liệu không hợp lệ.",
+      message: firstError?.message ?? 'Dữ liệu không hợp lệ.',
       errors: validationErrors,
       statusCode,
     },
@@ -31,7 +31,7 @@ export function createValidationException(errors: ValidationError[]) {
   );
 }
 
-function formatValidationErrors(errors: ValidationError[], parentPath = ""): ApiValidationError[] {
+function formatValidationErrors(errors: ValidationError[], parentPath = ''): ApiValidationError[] {
   return errors.flatMap((error): ApiValidationError[] => {
     const field = parentPath ? `${parentPath}.${error.property}` : error.property;
     const ownErrors = Object.entries(error.constraints ?? {}).map(([constraintName, message]) => {
@@ -65,6 +65,9 @@ function getStatusCode(errors: ValidationError[]): number | undefined {
   return undefined;
 }
 
-function getConstraintContext(error: ValidationError, constraintName: string): ValidationErrorContext | undefined {
+function getConstraintContext(
+  error: ValidationError,
+  constraintName: string,
+): ValidationErrorContext | undefined {
   return error.contexts?.[constraintName] as ValidationErrorContext | undefined;
 }

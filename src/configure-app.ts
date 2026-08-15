@@ -1,20 +1,20 @@
-import { INestApplication, RequestMethod, ValidationPipe } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import { PrismaExceptionFilter } from "./common/filters/prisma-exception.filter";
-import { createValidationException } from "./common/validation/validation-exception.factory";
+import { INestApplication, RequestMethod, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { PrismaExceptionFilter } from '@common/filters/prisma-exception.filter';
+import { createValidationException } from '@common/validation/validation-exception.factory';
 
 export function configureApp(app: INestApplication) {
   const config = app.get(ConfigService);
 
-  app.setGlobalPrefix("api", {
+  app.setGlobalPrefix('api', {
     exclude: [
-      { path: "docs", method: RequestMethod.GET },
-      { path: "docs-json", method: RequestMethod.GET },
+      { path: 'docs', method: RequestMethod.GET },
+      { path: 'docs-json', method: RequestMethod.GET },
     ],
   });
   app.enableCors({
-    origin: config.get<string>("CORS_ORIGIN")?.split(",") ?? ["http://localhost:3000"],
+    origin: config.get<string>('CORS_ORIGIN')?.split(',') ?? ['http://localhost:3000'],
     credentials: true,
   });
   app.useGlobalPipes(
@@ -29,20 +29,20 @@ export function configureApp(app: INestApplication) {
   app.useGlobalFilters(new PrismaExceptionFilter());
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle("Sales Debt Management API")
-    .setDescription("Standalone backend API for sales debt management")
-    .setVersion("0.1.0")
+    .setTitle('Sales Debt Management API')
+    .setDescription('Standalone backend API for sales debt management')
+    .setVersion('0.1.0')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   const httpAdapter = app.getHttpAdapter();
 
-  httpAdapter.get("/docs-json", (_request, response) => {
+  httpAdapter.get('/docs-json', (_request, response) => {
     response.json(document);
   });
 
-  httpAdapter.get("/docs", (_request, response) => {
-    response.type("html").send(renderSwaggerHtml());
+  httpAdapter.get('/docs', (_request, response) => {
+    response.type('html').send(renderSwaggerHtml());
   });
 }
 

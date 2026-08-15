@@ -1,9 +1,9 @@
-import { NestFactory } from "@nestjs/core";
-import { ExpressAdapter } from "@nestjs/platform-express";
-import express from "express";
-import type { Request, Response } from "express";
-import { AppModule } from "../src/app.module";
-import { configureApp } from "../src/configure-app";
+import { NestFactory } from '@nestjs/core';
+import { ExpressAdapter } from '@nestjs/platform-express';
+import express from 'express';
+import type { Request, Response } from 'express';
+import { AppModule } from '../src/app.module';
+import { configureApp } from '../src/configure-app';
 
 let cachedServer: express.Express | undefined;
 
@@ -14,7 +14,7 @@ async function bootstrapServer() {
 
   const server = express();
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server), {
-    logger: ["error", "warn", "log"],
+    logger: ['error', 'warn', 'log'],
   });
 
   configureApp(app);

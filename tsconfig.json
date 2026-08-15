@@ -8,8 +8,17 @@
     "allowSyntheticDefaultImports": true,
     "target": "ES2022",
     "sourceMap": true,
+    "rootDir": "./",
     "outDir": "./dist",
-    "baseUrl": "./",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@auth/*": ["./src/auth/*"],
+      "@common/*": ["./src/common/*"],
+      "@config/*": ["./src/config/*"],
+      "@database/*": ["./src/database/*"],
+      "@generated/*": ["./src/generated/*"],
+      "@modules/*": ["./src/modules/*"]
+    },
     "incremental": true,
     "strict": true,
     "skipLibCheck": true,

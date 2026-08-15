@@ -1,20 +1,20 @@
-import { loadEnvFile } from "node:process";
-import { defineConfig, env } from "prisma/config";
+import { loadEnvFile } from 'node:process';
+import { defineConfig, env } from 'prisma/config';
 
 try {
-  loadEnvFile(".env");
+  loadEnvFile('.env');
 } catch {
   // Local development may rely on shell-provided env vars instead of a .env file.
 }
 
 export default defineConfig({
-  schema: "prisma/schema.prisma",
+  schema: 'prisma/',
   migrations: {
-    seed: "tsx prisma/seed.ts",
+    seed: 'tsx prisma/seed.ts',
   },
-  engine: "classic",
+  engine: 'classic',
   datasource: {
-    url: env("DATABASE_URL"),
-    directUrl: env("DIRECT_URL"),
+    url: env('DATABASE_URL'),
+    directUrl: env('DIRECT_URL'),
   },
 });

@@ -1,0 +1,33 @@
+enum PartyType {
+  CUSTOMER
+  SUPPLIER
+  BOTH
+}
+
+model Party {
+  id           String   @id @default(cuid())
+  type         PartyType
+  code         String?  @unique
+  name         String
+  phone        String?
+  email        String?
+  taxCode      String?
+  address      String?
+  address2     String?
+  note         String?
+  creditLimit  Decimal? @db.Decimal(18, 2)
+  isActive     Boolean  @default(true)
+  createdById  String?
+  assignedToId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  createdBy  User?  @relation("PartyCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  assignedTo User?  @relation("PartyAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  debts      Debt[]
+
+  @@index([name])
+  @@index([type])
+  @@index([isActive])
+  @@index([assignedToId])
+}
