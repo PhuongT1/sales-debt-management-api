@@ -2,6 +2,39 @@
 
 NestJS backend API for Debt Flow / Sales Debt Management.
 
+## Important: After Changing A Prisma Model
+
+Whenever you add, remove, rename, or change a field in `prisma/models/*.prisma`, follow this
+workflow before continuing NestJS development:
+
+```text
+Edit a Prisma model
+        ↓
+npm run db:migrate -- --name describe_your_change
+        ↓
+npm run db:generate
+        ↓
+npm run dev
+        ↓
+Commit the model and generated migration
+```
+
+Example after adding `phone` to `prisma/models/user.prisma`:
+
+```bash
+npm run db:migrate -- --name add_phone_to_user
+npm run db:generate
+npm run dev
+```
+
+The migration command updates the development database. The generate command updates Prisma
+Client and its TypeScript types. Commit both:
+
+```text
+prisma/models/<changed-model>.prisma
+prisma/migrations/<timestamp>_<migration-name>/migration.sql
+```
+
 ## Run Backend
 
 First setup:
@@ -18,7 +51,8 @@ Daily development:
 npm run dev
 ```
 
-`npm run dev` generates Prisma Client, then starts NestJS in watch mode.
+`npm run setup:dev` performs the initial migration, generates Prisma Client, seeds the admin
+account, and starts NestJS. After setup, `npm run dev` starts NestJS in watch mode.
 
 ## Important Links
 
@@ -51,18 +85,72 @@ Role:     ADMIN
 | Command                  | Purpose                                                       |
 | ------------------------ | ------------------------------------------------------------- |
 | `npm run dev`            | Start backend in watch mode.                                  |
-| `npm run setup:dev`      | Migrate DB, seed admin user, then start backend.              |
+| `npm run setup:dev`      | Migrate, generate Prisma Client, seed, and start development. |
 | `npm run build`          | Generate Prisma Client and build backend.                     |
-| `npm run db:migrate`     | Apply local Prisma migrations and regenerate client.          |
-| `npm run db:seed`        | Seed default admin user.                                      |
+| `npm run db:migrate`     | Create and apply migrations in development.                   |
+| `npm run db:generate`    | Regenerate Prisma Client from the current models.             |
+| `npm run db:deploy`      | Apply committed migrations in staging or production.          |
+| `npm run db:validate`    | Validate all Prisma schema files.                             |
+| `npm run db:check`       | Validate Prisma models and regenerate Prisma Client.          |
+| `npm run db:studio`      | Open Prisma Studio.                                           |
+| `npm run db:seed`        | Seed the default admin user.                                  |
 | `npm run import:parties` | Import 100 demo customers/suppliers directly into PostgreSQL. |
-| `npm run db:check`       | Validate Prisma schema and regenerate client.                 |
-| `npm run prisma:studio`  | Open Prisma Studio.                                           |
+
+## Changing Prisma Models
+
+Prisma models are stored in `prisma/models/`. Whenever you add, remove, or change a field,
+create a new migration and regenerate Prisma Client.
+
+For example, after adding this field to `prisma/models/party.prisma`:
+
+```prisma
+model Party {
+  // Existing fields...
+  website String?
+}
+```
+
+Run:
+
+```bash
+npm run db:migrate -- --name add_party_website
+npm run db:generate
+```
+
+The first command creates a new SQL migration and applies it to the development database. The
+second command updates the generated TypeScript client and types.
+
+Then start or restart the API:
+
+```bash
+npm run dev
+```
+
+Use a short migration name that describes the change, for example:
+
+```bash
+npm run db:migrate -- --name add_party_address
+npm run db:migrate -- --name make_party_email_unique
+npm run db:migrate -- --name add_debt_reminder_date
+```
+
+Do not edit a migration that has already been applied. Change the Prisma model and create another
+migration instead. Commit both the changed `.prisma` file and the generated migration directory.
+
+For staging or production, apply committed migrations with:
+
+```bash
+npm run db:deploy
+```
+
+`db:deploy` does not create a migration and does not regenerate Prisma Client. The `build` command
+generates Prisma Client before compiling the application.
 
 ## More Docs
 
 - [Run Source](docs/run-source.md)
 - [API And Swagger](docs/api-and-swagger.md)
+- [API Response Format](docs/api-response-format.md)
 - [Request Flow](docs/request-flow.md)
 - [Database Workflow](docs/database-workflow.md)
 - [Project Structure](docs/project-structure.md)

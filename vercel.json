@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "pnpm build",
+  "buildCommand": "npm run build:prod",
   "functions": {
     "api/index.ts": {
       "maxDuration": 30

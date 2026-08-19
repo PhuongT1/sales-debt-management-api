@@ -14,6 +14,7 @@ Before running `setup:dev`, update `.env` with a real PostgreSQL / Neon connecti
 
 ```bash
 npm run db:migrate
+npm run db:generate
 npm run db:seed
 npm run dev
 ```
@@ -24,12 +25,38 @@ npm run dev
 npm run dev
 ```
 
-This command runs:
+This command runs `nest start --watch`. Run `npm run db:generate` first if Prisma models changed
+without running a migration.
+
+## Debug In VS Code
+
+The repository includes `.vscode/launch.json` for debugging NestJS with TypeScript source maps and
+watch mode.
+
+1. Stop another API process that is using the configured `PORT`.
+2. Add a breakpoint in a controller, service, interceptor, or other TypeScript file.
+3. Open **Run and Debug** in VS Code.
+4. Select **NestJS: Debug (one click)**.
+5. Press `F5`, then send the request from Postman.
+
+This profile starts the API and attaches VS Code automatically. Do not start `npm run dev` or
+`npm run debug` separately when using it.
+
+Alternatively, start the inspector manually:
 
 ```bash
-npm run prisma:generate
-nest start --watch
+npm run debug
 ```
+
+Then select **NestJS: Attach to npm run debug** and press `F5`. The terminal should report both
+`Debugger listening` and `Debugger attached` before you send a Postman request.
+
+Useful debugger controls:
+
+- `F10`: step over the current line.
+- `F11`: step into the called function.
+- `Shift+F11`: step out of the current function.
+- `F5`: continue to the next breakpoint.
 
 ## Build
 
@@ -40,7 +67,7 @@ npm run build
 This command runs:
 
 ```bash
-npm run prisma:generate
+npm run db:generate
 nest build
 tsc-alias -p tsconfig.json
 ```
@@ -56,7 +83,7 @@ npm run start
 This runs:
 
 ```bash
-node dist/main.js
+node dist/src/main.js
 ```
 
 ## Environment
@@ -96,7 +123,7 @@ DIRECT_URL
 Run:
 
 ```bash
-npm run prisma:generate
+npm run db:generate
 ```
 
 ### `EMFILE: too many open files, watch`

@@ -1,0 +1,377 @@
+{
+  "info": {
+    "name": "Sales Debt Management API",
+    "description": "NestJS API collection. Login automatically stores tokens; create requests store resource IDs for later requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const isDestructive = pm.info.requestName.startsWith('[DESTRUCTIVE]') || pm.info.requestName.startsWith('[DANGEROUS]');",
+          "if (isDestructive && pm.environment.get('allowDestructive') !== 'true') {",
+          "  console.warn('Skipped destructive request. Set allowDestructive=true to enable it.');",
+          "  pm.execution.skipRequest();",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.environment.set('lastRequestName', pm.info.requestName);",
+          "pm.environment.set('lastStatusCode', String(pm.response.code));",
+          "pm.environment.set('lastRunAt', new Date().toISOString());",
+          "pm.test('Response status is below 500', function () {",
+          "  pm.expect(pm.response.code).to.be.below(500);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login succeeds', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  pm.environment.set('accessToken', body.data.accessToken);",
+                  "  pm.environment.set('refreshToken', body.data.refreshToken);",
+                  "  if (body.data.user && body.data.user.id) pm.environment.set('userId', body.data.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Public login. Saves accessToken, refreshToken, and userId into the active environment."
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  pm.environment.set('accessToken', body.data.accessToken);",
+                  "  pm.environment.set('refreshToken', body.data.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/auth/refresh"
+          }
+        },
+        {
+          "name": "Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Parties",
+      "item": [
+        {
+          "name": "List Parties",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/parties?page=1&pageSize=20"
+          }
+        },
+        {
+          "name": "Create Party",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.data.id) pm.environment.set('partyId', body.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"CUSTOMER\",\n  \"code\": \"POSTMAN-{{$randomUUID}}\",\n  \"name\": \"Postman Customer\",\n  \"phone\": \"0900000001\",\n  \"email\": \"{{$randomEmail}}\",\n  \"taxCode\": \"PM-{{$randomInt}}\",\n  \"address\": \"Ho Chi Minh City\",\n  \"note\": \"Created from Postman\",\n  \"creditLimit\": \"10000000\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/parties"
+          }
+        },
+        {
+          "name": "Get Party Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/parties/{{partyId}}"
+          }
+        },
+        {
+          "name": "Update Party",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Customer Updated\",\n  \"note\": \"Updated from Postman\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/parties/{{partyId}}"
+          }
+        },
+        {
+          "name": "[DESTRUCTIVE] Deactivate Party",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/parties/{{partyId}}",
+            "description": "Soft-deactivates the selected party. It fails when the party has unsettled debts."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Debts",
+      "item": [
+        {
+          "name": "List Debts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/debts?page=1&pageSize=20&partyId={{partyId}}"
+          }
+        },
+        {
+          "name": "Create Debt",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.data.id) pm.environment.set('debtId', body.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"RECEIVABLE\",\n  \"partyId\": \"{{partyId}}\",\n  \"title\": \"Postman test debt\",\n  \"invoiceNo\": \"INV-{{$randomInt}}\",\n  \"description\": \"Created from Postman\",\n  \"originalAmount\": \"1000000\",\n  \"issueDate\": \"{{$isoTimestamp}}\",\n  \"dueDate\": \"{{$isoTimestamp}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/debts"
+          }
+        },
+        {
+          "name": "Get Debt Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/debts/{{debtId}}"
+          }
+        },
+        {
+          "name": "Update Debt Collection",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"collectionStatus\": \"CONTACTED\",\n  \"followUpNote\": \"Customer contacted from Postman\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/debts/{{debtId}}"
+          }
+        },
+        {
+          "name": "[DESTRUCTIVE] Cancel Debt",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/debts/{{debtId}}",
+            "description": "Changes the selected debt to CANCELLED."
+          }
+        },
+        {
+          "name": "Create Payment for Debt",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.data.payment && body.data.payment.id) pm.environment.set('paymentId', body.data.payment.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": \"100000\",\n  \"paidAt\": \"{{$isoTimestamp}}\",\n  \"method\": \"BANK_TRANSFER\",\n  \"referenceNo\": \"PAY-{{$randomInt}}\",\n  \"note\": \"Created from Postman\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/debts/{{debtId}}/payments"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "List Payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/payments?page=1&pageSize=20&debtId={{debtId}}"
+          }
+        },
+        {
+          "name": "[DESTRUCTIVE] Delete Payment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/payments/{{paymentId}}",
+            "description": "Deletes the payment and recalculates its debt balance."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard and Reports",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/dashboard" }
+        },
+        {
+          "name": "Aging Report",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/reports/aging" }
+        },
+        {
+          "name": "Export Debts to Excel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/exports/debts",
+            "description": "Use Postman's Send and Download action to save the XLSX response."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Administration",
+      "item": [
+        {
+          "name": "List Users",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/users" }
+        },
+        {
+          "name": "[DANGEROUS] Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated User\",\n  \"role\": \"VIEWER\",\n  \"status\": \"ACTIVE\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/users/{{userId}}"
+          }
+        },
+        {
+          "name": "[DANGEROUS] Deactivate User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/users/{{userId}}",
+            "description": "Do not call this with your current login userId unless you intend to disable that account."
+          }
+        },
+        {
+          "name": "Audit Logs",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/audit-logs" }
+        },
+        {
+          "name": "Import Debts Scaffold",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/imports/debts",
+            "description": "The backend currently returns a scaffold message; Excel parsing is not implemented."
+          }
+        }
+      ]
+    }
+  ]
+}

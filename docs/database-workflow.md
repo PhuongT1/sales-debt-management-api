@@ -39,7 +39,8 @@ schema: 'prisma/';
 2. Create and apply a migration:
 
 ```bash
-npm run db:migrate
+npm run db:migrate -- --name add_party_website
+npm run db:generate
 ```
 
 3. Commit these files:
@@ -62,6 +63,7 @@ dist
 ```bash
 npm install
 npm run db:migrate
+npm run db:generate
 ```
 
 This applies pending migrations and regenerates Prisma Client.
@@ -75,17 +77,24 @@ npm run build
 
 ## Production Deploy
 
-Apply migrations:
+Vercel runs the production build command configured in `vercel.json`:
 
 ```bash
-npm run db:deploy
+npm run build:prod
 ```
 
-Build the API:
+This command applies committed production migrations first, then generates Prisma Client and builds
+the API:
 
-```bash
+```text
+npm run db:deploy
+        ↓
 npm run build
 ```
+
+Configure `DATABASE_URL` and `DIRECT_URL` in the Vercel Production environment before deploying.
+Preview deployments must use a separate preview database or must not run this production build
+command against the production database.
 
 ## Rules
 
@@ -96,11 +105,13 @@ npm run build
 
 ## Useful Commands
 
-| Command                   | Purpose                                          |
-| ------------------------- | ------------------------------------------------ |
-| `npm run db:migrate`      | Dev migration and Prisma generate.               |
-| `npm run db:deploy`       | Production migration deploy and Prisma generate. |
-| `npm run db:check`        | Validate schema and generate client.             |
-| `npm run prisma:generate` | Generate Prisma Client only.                     |
-| `npm run prisma:studio`   | Inspect database in Prisma Studio.               |
-| `npm run db:seed`         | Seed default admin user.                         |
+| Command               | Purpose                                      |
+| --------------------- | -------------------------------------------- |
+| `npm run db:migrate`  | Create and apply development migrations.     |
+| `npm run db:generate` | Generate Prisma Client and TypeScript types. |
+| `npm run db:deploy`   | Apply committed production migrations.       |
+| `npm run db:validate` | Validate all Prisma schema files.            |
+| `npm run db:check`    | Validate schema and generate client.         |
+| `npm run db:studio`   | Inspect database in Prisma Studio.           |
+| `npm run db:seed`     | Seed default admin user.                     |
+| `npm run build:prod`  | Apply migrations and build for production.   |
