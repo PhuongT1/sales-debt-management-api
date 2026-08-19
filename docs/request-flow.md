@@ -9,7 +9,6 @@ When the backend starts with `npm run dev`, the main flow is:
 ```txt
 package.json
   -> scripts.dev
-  -> npm run prisma:generate
   -> nest start --watch
   -> src/main.ts
   -> src/app.module.ts
@@ -20,8 +19,8 @@ package.json
 Detailed order:
 
 1. `package.json`
-   - `dev` runs Prisma generate first.
-   - Then NestJS starts in watch mode.
+   - `dev` starts NestJS in watch mode.
+   - `setup:dev` generates Prisma Client during the initial project setup.
 
 2. `src/main.ts`
    - Creates the Nest app:
@@ -510,6 +509,7 @@ Example:
 ```json
 {
   "success": false,
+  "statusCode": 400,
   "code": "VALIDATION_ERROR",
   "message": "Dữ liệu không hợp lệ.",
   "errors": [
@@ -519,7 +519,8 @@ Example:
       "code": "AUTH_EMAIL_REQUIRED"
     }
   ],
-  "statusCode": 400
+  "timestamp": "2026-08-18T08:30:00.000Z",
+  "path": "/api/auth/login"
 }
 ```
 
@@ -528,10 +529,20 @@ Example:
 Handled by:
 
 ```txt
-src/common/filters/prisma-exception.filter.ts
+src/common/filters/api-exception.filter.ts
 ```
 
 Common examples:
 
 - Duplicate email -> conflict response.
+- Missing Prisma record -> not found response.
+- Relation conflict -> conflict response.
 - Other Prisma known request errors -> bad request response.
+
+Successful controller results are wrapped by:
+
+```txt
+src/common/interceptors/api-response.interceptor.ts
+```
+
+See [API Response Format](api-response-format.md) for the complete response contracts.

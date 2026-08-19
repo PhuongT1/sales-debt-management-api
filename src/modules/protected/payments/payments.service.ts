@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { getPagination, paginate } from '@common/utils/pagination.util';
 import { DebtStatus, PaymentMethod, Prisma } from '@generated/prisma';
 import { PrismaService } from '@database/prisma.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -57,8 +58,7 @@ export class PaymentsService {
   }
 
   async list(query: QueryPaymentsDto) {
-    const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 20;
+    const pagination = getPagination(query);
     const where: Prisma.PaymentWhereInput = {
       ...(query.debtId ? { debtId: query.debtId } : {}),
       ...(query.partyId ? { debt: { partyId: query.partyId } } : {}),
@@ -68,8 +68,8 @@ export class PaymentsService {
       this.prisma.payment.findMany({
         where,
         orderBy: { paidAt: 'desc' },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
+        skip: pagination.skip,
+        take: pagination.take,
         include: {
           debt: { include: { party: true } },
           createdBy: { select: { id: true, name: true, email: true } },
@@ -78,7 +78,7 @@ export class PaymentsService {
       this.prisma.payment.count({ where }),
     ]);
 
-    return { items, total, page, pageSize };
+    return paginate(items, total, pagination);
   }
 
   async remove(id: string) {

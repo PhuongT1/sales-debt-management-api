@@ -1,16 +1,23 @@
 import { Controller, Get, Query, Res } from '@nestjs/common';
 import ExcelJS from 'exceljs';
 import { ProtectedApi } from '@auth/auth-api.decorator';
+import { DEFAULT_PAGE, MAX_PAGE_SIZE } from '@common/constants/pagination.constants';
+import { SkipApiResponse } from '@common/decorators/api-response.decorator';
 import { DebtsService } from '@modules/protected/debts/debts.service';
 
 @ProtectedApi()
+@SkipApiResponse()
 @Controller('exports')
 export class ExportsController {
   constructor(private readonly debtsService: DebtsService) {}
 
   @Get('debts')
   async debts(@Query() query: Record<string, string | undefined>, @Res() response: any) {
-    const debts = await this.debtsService.list({ ...query, page: 1, pageSize: 1000 });
+    const debts = await this.debtsService.list({
+      ...query,
+      page: DEFAULT_PAGE,
+      pageSize: MAX_PAGE_SIZE,
+    });
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Cong no');
     sheet.columns = [

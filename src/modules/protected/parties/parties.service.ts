@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { getPagination, paginate } from '@common/utils/pagination.util';
 import { PartyType, Prisma } from '@generated/prisma';
 import { PrismaService } from '@database/prisma.service';
 import { CreatePartyDto } from './dto/create-party.dto';
@@ -10,32 +11,15 @@ export class PartiesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async list(query: QueryPartiesDto) {
-    const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 20;
-    const createdAt = this.createdAtFilter(query);
-    const where: Prisma.PartyWhereInput = {
-      isActive: true,
-      ...(query.type ? { type: query.type as PartyType } : {}),
-      ...(query.assignedToId ? { assignedToId: query.assignedToId } : {}),
-      ...(createdAt ? { createdAt } : {}),
-      ...(query.q
-        ? {
-            OR: [
-              { name: { contains: query.q, mode: 'insensitive' } },
-              { code: { contains: query.q, mode: 'insensitive' } },
-              { phone: { contains: query.q, mode: 'insensitive' } },
-              { taxCode: { contains: query.q, mode: 'insensitive' } },
-            ],
-          }
-        : {}),
-    };
+    const pagination = getPagination(query);
+    const where = this.buildListWhere(query);
 
     const [items, total] = await this.prisma.$transaction([
       this.prisma.party.findMany({
         where,
         orderBy: [{ createdAt: 'desc' }],
-        skip: (page - 1) * pageSize,
-        take: pageSize,
+        skip: pagination.skip,
+        take: pagination.take,
         include: {
           assignedTo: { select: { id: true, name: true, email: true } },
           _count: { select: { debts: true } },
@@ -44,7 +28,7 @@ export class PartiesService {
       this.prisma.party.count({ where }),
     ]);
 
-    return { items, total, page, pageSize };
+    return paginate(items, total, pagination);
   }
 
   detail(id: string) {
@@ -103,6 +87,27 @@ export class PartiesService {
   private nullable(value: unknown) {
     const text = String(value ?? '').trim();
     return text.length > 0 ? text : null;
+  }
+
+  private buildListWhere(query: QueryPartiesDto): Prisma.PartyWhereInput {
+    const createdAt = this.createdAtFilter(query);
+
+    return {
+      isActive: true,
+      ...(query.type ? { type: query.type } : {}),
+      ...(query.assignedToId ? { assignedToId: query.assignedToId } : {}),
+      ...(createdAt ? { createdAt } : {}),
+      ...(query.q
+        ? {
+            OR: [
+              { name: { contains: query.q, mode: 'insensitive' } },
+              { code: { contains: query.q, mode: 'insensitive' } },
+              { phone: { contains: query.q, mode: 'insensitive' } },
+              { taxCode: { contains: query.q, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    };
   }
 
   private createdRange(range: string): Prisma.DateTimeFilter | undefined {

@@ -1,7 +1,6 @@
 import { INestApplication, RequestMethod, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { PrismaExceptionFilter } from '@common/filters/prisma-exception.filter';
 import { createValidationException } from '@common/validation/validation-exception.factory';
 
 export function configureApp(app: INestApplication) {
@@ -26,8 +25,6 @@ export function configureApp(app: INestApplication) {
       exceptionFactory: createValidationException,
     }),
   );
-  app.useGlobalFilters(new PrismaExceptionFilter());
-
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Sales Debt Management API')
     .setDescription('Standalone backend API for sales debt management')

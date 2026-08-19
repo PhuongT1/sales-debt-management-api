@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { DEFAULT_PAGE, MAX_PAGE_SIZE } from '@common/constants/pagination.constants';
 import { DebtStatus, Prisma } from '@generated/prisma';
 import { DebtsService } from '@modules/protected/debts/debts.service';
 
@@ -7,7 +8,11 @@ export class ReportsService {
   constructor(private readonly debtsService: DebtsService) {}
 
   async aging(query: Record<string, string | undefined>) {
-    const debts = await this.debtsService.list({ ...query, page: 1, pageSize: 1000 });
+    const debts = await this.debtsService.list({
+      ...query,
+      page: DEFAULT_PAGE,
+      pageSize: MAX_PAGE_SIZE,
+    });
     const now = new Date();
     const buckets = {
       notDue: { label: 'Chưa đến hạn', amount: new Prisma.Decimal(0), count: 0 },

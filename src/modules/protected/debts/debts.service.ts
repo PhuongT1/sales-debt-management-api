@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { getPagination, paginate } from '@common/utils/pagination.util';
 import { CollectionStatus, DebtStatus, DebtType, Prisma } from '@generated/prisma';
 import { PrismaService } from '@database/prisma.service';
 import { CreateDebtDto } from './dto/create-debt.dto';
@@ -10,8 +11,7 @@ export class DebtsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async list(query: QueryDebtsDto) {
-    const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 20;
+    const pagination = getPagination(query);
     const now = new Date();
     const startOfToday = new Date(now);
     startOfToday.setHours(0, 0, 0, 0);
@@ -52,8 +52,8 @@ export class DebtsService {
       this.prisma.debt.findMany({
         where,
         orderBy: query.overdue ? [{ dueDate: 'asc' }] : [{ createdAt: 'desc' }],
-        skip: (page - 1) * pageSize,
-        take: pageSize,
+        skip: pagination.skip,
+        take: pagination.take,
         include: {
           party: true,
           assignedTo: { select: { id: true, name: true, email: true } },
@@ -63,7 +63,7 @@ export class DebtsService {
       this.prisma.debt.count({ where }),
     ]);
 
-    return { items, total, page, pageSize };
+    return paginate(items, total, pagination);
   }
 
   detail(id: string) {
