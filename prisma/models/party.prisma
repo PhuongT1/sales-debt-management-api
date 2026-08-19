@@ -25,6 +25,7 @@ model Party {
   createdBy  User?  @relation("PartyCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   assignedTo User?  @relation("PartyAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
   debts      Debt[]
+  imageUrl   String?
 
   @@index([name])
   @@index([type])
