@@ -72,6 +72,11 @@ nest build
 tsc-alias -p tsconfig.json
 ```
 
+`src/vercel.ts` contains the NestJS serverless bootstrap. The build compiles it to
+`dist/src/vercel.js` and rewrites TypeScript path aliases. Vercel invokes `api/index.js`, which
+loads that compiled handler. This is required because Vercel Functions do not resolve TypeScript
+`paths` mappings in raw function source.
+
 `tsc-alias` rewrites TypeScript path aliases in `dist` so compiled Node.js output can run.
 
 ## Run Compiled Output

@@ -1,9 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import express from 'express';
+import express = require('express');
 import type { Request, Response } from 'express';
-import { AppModule } from '../src/app.module';
-import { configureApp } from '../src/configure-app';
+import { AppModule } from './app.module';
+import { configureApp } from './configure-app';
 
 let cachedServer: express.Express | undefined;
 
