@@ -3,28 +3,28 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService, type JwtSignOptions } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '@database/prisma.service';
-import { UserStatus } from '@generated/prisma';
+import { UserRole, UserStatus } from '@generated/prisma';
 import { LoginDto } from '@modules/public/auth/dto/login.dto';
 
 export type AuthUser = {
   id: string;
   name: string;
   email: string;
-  role: string;
-  status: string;
+  role: UserRole;
+  status: UserStatus;
 };
 
 type RefreshTokenPayload = {
   sub: string;
   email: string;
-  role: string;
+  role: UserRole;
   type: 'refresh';
 };
 
 type AccessTokenPayload = {
   sub: string;
   email: string;
-  role: string;
+  role: UserRole;
   type: 'access';
 };
 
@@ -160,8 +160,8 @@ export class AuthService {
     id: string;
     name: string;
     email: string;
-    role: string;
-    status: string;
+    role: UserRole;
+    status: UserStatus;
   }): AuthUser {
     return {
       id: user.id,

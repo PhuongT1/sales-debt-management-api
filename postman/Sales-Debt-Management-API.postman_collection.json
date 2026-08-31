@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Sales Debt Management API",
-    "description": "NestJS API collection. Login automatically stores tokens; create requests store resource IDs for later requests.",
+    "description": "NestJS API collection. Enter credentials in the Login request body. Successful login automatically stores tokens in the selected environment; protected requests inherit Bearer authentication from this collection.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -55,9 +55,13 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Login succeeds', function () { pm.response.to.have.status(201); });",
-                  "if (pm.response.code === 201) {",
+                  "pm.test('Login succeeds', function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200) {",
                   "  const body = pm.response.json();",
+                  "  pm.test('Login returns access and refresh tokens', function () {",
+                  "    pm.expect(body.data.accessToken).to.be.a('string').and.not.empty;",
+                  "    pm.expect(body.data.refreshToken).to.be.a('string').and.not.empty;",
+                  "  });",
                   "  pm.environment.set('accessToken', body.data.accessToken);",
                   "  pm.environment.set('refreshToken', body.data.refreshToken);",
                   "  if (body.data.user && body.data.user.id) pm.environment.set('userId', body.data.user.id);",
@@ -72,11 +76,11 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "raw": "{\n  \"email\": \"\",\n  \"password\": \"\"\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": "{{baseUrl}}/api/auth/login",
-            "description": "Public login. Saves accessToken, refreshToken, and userId into the active environment."
+            "description": "Public login. Enter credentials directly in this request body. A successful response saves accessToken, refreshToken, and userId into the selected environment. Do not save or export real credentials with the shared collection."
           }
         },
         {
@@ -87,8 +91,13 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) {",
+                  "pm.test('Refresh succeeds', function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200) {",
                   "  const body = pm.response.json();",
+                  "  pm.test('Refresh returns access and refresh tokens', function () {",
+                  "    pm.expect(body.data.accessToken).to.be.a('string').and.not.empty;",
+                  "    pm.expect(body.data.refreshToken).to.be.a('string').and.not.empty;",
+                  "  });",
                   "  pm.environment.set('accessToken', body.data.accessToken);",
                   "  pm.environment.set('refreshToken', body.data.refreshToken);",
                   "}"

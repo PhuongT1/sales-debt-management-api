@@ -4,11 +4,14 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
+  Injectable,
   Logger,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { Prisma } from '@generated/prisma';
 import type { ApiErrorDetail, ApiErrorResponse } from '@common/http/api-response.types';
+import { I18nService } from '@common/i18n/i18n.service';
+import type { AppLocale } from '@common/i18n/i18n.types';
 
 type ExceptionPayload = {
   code?: unknown;
@@ -24,14 +27,19 @@ type NormalizedError = {
 };
 
 @Catch()
+@Injectable()
 export class ApiExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(ApiExceptionFilter.name);
+
+  constructor(private readonly i18n: I18nService) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
     const http = host.switchToHttp();
     const request = http.getRequest<Request>();
     const response = http.getResponse<Response>();
-    const error = this.normalizeException(exception);
+    const locale = this.i18n.resolveLocale(request);
+    const error = this.normalizeException(exception, locale);
+
     const body: ApiErrorResponse = {
       success: false,
       statusCode: error.statusCode,
@@ -50,44 +58,64 @@ export class ApiExceptionFilter implements ExceptionFilter {
     response.status(error.statusCode).json(body);
   }
 
-  private normalizeException(exception: unknown): NormalizedError {
+  private normalizeException(exception: unknown, locale: AppLocale): NormalizedError {
     if (exception instanceof Prisma.PrismaClientKnownRequestError) {
-      return this.normalizePrismaError(exception);
+      return this.normalizePrismaError(exception, locale);
     }
 
     if (exception instanceof HttpException) {
-      return this.normalizeHttpException(exception);
+      return this.normalizeHttpException(exception, locale);
     }
 
     return {
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       code: 'INTERNAL_SERVER_ERROR',
-      message: 'An unexpected error occurred.',
+      message: this.i18n.t('errors.INTERNAL_SERVER_ERROR', locale),
     };
   }
 
-  private normalizeHttpException(exception: HttpException): NormalizedError {
+  private normalizeHttpException(exception: HttpException, locale: AppLocale): NormalizedError {
     const statusCode = exception.getStatus();
     const response = exception.getResponse();
     const payload = typeof response === 'object' ? (response as ExceptionPayload) : undefined;
-    const message = this.extractMessage(payload?.message ?? response, exception.message);
+    const rawCode = typeof payload?.code === 'string' ? payload.code : this.defaultCode(statusCode);
+    const rawMessage = this.extractMessage(payload?.message ?? response, exception.message);
+
+    // Attempt to translate by key or standard code
+    let localizedMessage = rawMessage;
+    if (rawMessage.includes('.')) {
+      localizedMessage = this.i18n.t(rawMessage, locale);
+    } else {
+      const byCode = this.i18n.t(`errors.${rawCode}`, locale);
+      if (byCode !== `errors.${rawCode}`) {
+        localizedMessage = byCode;
+      } else {
+        const byAuth = this.i18n.t(`auth.${rawCode}`, locale);
+        if (byAuth !== `auth.${rawCode}`) {
+          localizedMessage = byAuth;
+        }
+      }
+    }
 
     return {
       statusCode,
-      code: typeof payload?.code === 'string' ? payload.code : this.defaultCode(statusCode),
-      message,
+      code: rawCode,
+      message: localizedMessage,
       errors: this.extractErrors(payload?.errors),
     };
   }
 
-  private normalizePrismaError(error: Prisma.PrismaClientKnownRequestError): NormalizedError {
+  private normalizePrismaError(
+    error: Prisma.PrismaClientKnownRequestError,
+    locale: AppLocale,
+  ): NormalizedError {
     if (error.code === 'P2002') {
       const fields = Array.isArray(error.meta?.target) ? error.meta.target.map(String) : [];
       const message = fields.includes('code')
-        ? 'Mã này đã tồn tại. Vui lòng nhập mã khác hoặc để trống.'
+        ? this.i18n.t('errors.CODE_EXISTS', locale)
         : fields.includes('email')
-          ? 'Email này đã tồn tại.'
-          : 'Dữ liệu bị trùng. Vui lòng kiểm tra lại.';
+          ? this.i18n.t('errors.EMAIL_EXISTS', locale)
+          : this.i18n.t('errors.RESOURCE_CONFLICT', locale);
 
       return {
         statusCode: HttpStatus.CONFLICT,
@@ -100,7 +128,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
       return {
         statusCode: HttpStatus.NOT_FOUND,
         code: 'RESOURCE_NOT_FOUND',
-        message: 'Không tìm thấy dữ liệu yêu cầu.',
+        message: this.i18n.t('errors.RESOURCE_NOT_FOUND', locale),
       };
     }
 
@@ -108,14 +136,14 @@ export class ApiExceptionFilter implements ExceptionFilter {
       return {
         statusCode: HttpStatus.CONFLICT,
         code: 'RELATION_CONFLICT',
-        message: 'Không thể thay đổi dữ liệu vì đang có dữ liệu liên quan.',
+        message: this.i18n.t('errors.RELATION_CONFLICT', locale),
       };
     }
 
     return {
       statusCode: HttpStatus.BAD_REQUEST,
       code: 'DATABASE_REQUEST_ERROR',
-      message: 'Không thể xử lý dữ liệu. Vui lòng kiểm tra lại.',
+      message: this.i18n.t('errors.DATABASE_REQUEST_ERROR', locale),
     };
   }
 

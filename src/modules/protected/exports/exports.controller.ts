@@ -1,5 +1,6 @@
 import { Controller, Get, Query, Res } from '@nestjs/common';
 import ExcelJS from 'exceljs';
+import type { Response } from 'express';
 import { ProtectedApi } from '@auth/auth-api.decorator';
 import { DEFAULT_PAGE, MAX_PAGE_SIZE } from '@common/constants/pagination.constants';
 import { SkipApiResponse } from '@common/decorators/api-response.decorator';
@@ -12,7 +13,7 @@ export class ExportsController {
   constructor(private readonly debtsService: DebtsService) {}
 
   @Get('debts')
-  async debts(@Query() query: Record<string, string | undefined>, @Res() response: any) {
+  async debts(@Query() query: Record<string, string | undefined>, @Res() response: Response) {
     const debts = await this.debtsService.list({
       ...query,
       page: DEFAULT_PAGE,
@@ -45,7 +46,7 @@ export class ExportsController {
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
-    response.setHeader('Content-Disposition', 'attachment; filename="sales-debt-management.xlsx"');
+    response.setHeader('Content-Disposition', 'attachment; filename="debtflow-debts.xlsx"');
     await workbook.xlsx.write(response);
     response.end();
   }

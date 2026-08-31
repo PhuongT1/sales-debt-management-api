@@ -1,10 +1,13 @@
 import { Controller, Post } from '@nestjs/common';
 import { ProtectedApi } from '@auth/auth-api.decorator';
+import { Roles } from '@auth/roles.decorator';
+import { UserRole } from '@generated/prisma';
 
 @ProtectedApi()
 @Controller('imports')
 export class ImportsController {
   @Post('debts')
+  @Roles(UserRole.ADMIN, UserRole.ACCOUNTANT)
   debts() {
     return {
       message:

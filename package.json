@@ -1,5 +1,5 @@
 {
-  "name": "sales-debt-management-api",
+  "name": "debtflow-api",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,7 +8,7 @@
     "setup:dev": "npm run db:migrate && npm run db:generate && npm run db:seed && npm run dev",
     "start": "node dist/src/main.js",
     "build": "npm run db:generate && nest build && tsc-alias -p tsconfig.json",
-    "build:prod": "npm run db:deploy && npm run build",
+    "build:prod": "npm run build",
     "lint": "eslint \"src/**/*.ts\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -58,6 +58,7 @@
     "tsc-alias": "^1.9.1",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.20.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.67.0"
   }
 }

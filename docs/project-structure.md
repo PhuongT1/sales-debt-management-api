@@ -19,6 +19,8 @@ src/
     current-user.decorator.ts
     jwt-auth.guard.ts
     public.decorator.ts
+    roles.decorator.ts
+    roles.guard.ts
   modules/
     public/
       public.module.ts
@@ -90,6 +92,10 @@ src/auth/auth.service.ts
 src/auth/current-user.decorator.ts
 src/auth/jwt-auth.guard.ts
 src/auth/public.decorator.ts
+src/auth/roles.decorator.ts
+src/auth/roles.guard.ts
 ```
 
-Most controllers are protected. Public APIs should be rare and explicit, usually only login or health-check style endpoints.
+Most controllers are protected. Public APIs should be rare and explicit, usually only login or
+health-check style endpoints. Authentication is enforced once by `JwtAuthGuard`; endpoint-level
+authorization is declared with `@Roles(...)` and enforced once by `RolesGuard`.

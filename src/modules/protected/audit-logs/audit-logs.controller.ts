@@ -1,18 +1,18 @@
-import { Controller, Get } from '@nestjs/common';
-import { PrismaService } from '@database/prisma.service';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ProtectedApi } from '@auth/auth-api.decorator';
+import { Roles } from '@auth/roles.decorator';
+import { UserRole } from '@generated/prisma';
+import { AuditLogsService } from './audit-logs.service';
+import { QueryAuditLogsDto } from './dto/query-audit-logs.dto';
 
 @ProtectedApi()
+@Roles(UserRole.ADMIN)
 @Controller('audit-logs')
 export class AuditLogsController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly auditLogsService: AuditLogsService) {}
 
   @Get()
-  list() {
-    return this.prisma.auditLog.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 100,
-      include: { actor: { select: { id: true, name: true, email: true } } },
-    });
+  list(@Query() query: QueryAuditLogsDto) {
+    return this.auditLogsService.list(query);
   }
 }

@@ -1,0 +1,60 @@
+import type { viTranslations } from './vi';
+
+export const enTranslations: typeof viTranslations = {
+  common: {
+    success: 'Request completed successfully.',
+    resourceCreated: 'Resource created successfully.',
+    resourceUpdated: 'Resource updated successfully.',
+    resourceDeleted: 'Resource deleted successfully.',
+  },
+  errors: {
+    INTERNAL_SERVER_ERROR: 'An unexpected internal server error occurred.',
+    UNAUTHORIZED: 'Unauthorized: Session invalid or expired.',
+    FORBIDDEN: 'Forbidden: You do not have permission to perform this action.',
+    BAD_REQUEST: 'Bad request: Invalid input parameters.',
+    NOT_FOUND: 'The requested resource was not found.',
+    RESOURCE_NOT_FOUND: 'The requested record was not found.',
+    RESOURCE_CONFLICT: 'A conflict occurred: record already exists.',
+    RELATION_CONFLICT: 'Cannot modify or delete record due to existing related data.',
+    DATABASE_REQUEST_ERROR: 'Unable to process database operation.',
+    VALIDATION_ERROR: 'Validation failed.',
+    CODE_EXISTS: 'This code already exists. Please choose a different code.',
+    EMAIL_EXISTS: 'This email is already registered.',
+  },
+  auth: {
+    INVALID_CREDENTIALS: 'Invalid email/phone or password.',
+    ACCOUNT_LOCKED: 'Account has been locked or deactivated.',
+    REFRESH_TOKEN_INVALID: 'Refresh token is invalid or has expired.',
+    MISSING_TOKEN: 'Missing Bearer authentication token in request header.',
+    TOKEN_EXPIRED: 'Authentication token is invalid or expired.',
+    LOGIN_SUCCESS: 'Logged in successfully.',
+  },
+  debts: {
+    DUE_DATE_BEFORE_ISSUE: 'Due date cannot be earlier than issue date.',
+    CANNOT_CANCEL_PAID_DEBT: 'Cannot cancel debt that has recorded payments.',
+    DEBT_NOT_FOUND: 'Debt record not found.',
+  },
+  parties: {
+    CANNOT_DELETE_ACTIVE_DEBTS: 'Cannot delete partner with unsettled outstanding debts.',
+    INVALID_DATE_RANGE: 'Start date cannot be after end date.',
+    PARTY_NOT_FOUND: 'Partner record not found.',
+  },
+  payments: {
+    CANNOT_PAY_CANCELLED_DEBT: 'Cannot make payment for a cancelled debt.',
+    DEBT_FULLY_PAID: 'This debt has already been fully paid.',
+    AMOUNT_MUST_BE_POSITIVE: 'Payment amount must be greater than 0.',
+    AMOUNT_EXCEEDS_REMAINING: 'Payment amount exceeds remaining debt balance.',
+    PAYMENT_NOT_FOUND: 'Payment record not found.',
+  },
+  validation: {
+    required: 'Field {field} is required.',
+    isEmail: 'Field {field} must be a valid email address.',
+    isString: 'Field {field} must be a string.',
+    isNumber: 'Field {field} must be a number.',
+    min: 'Field {field} must be greater than or equal to {min}.',
+    max: 'Field {field} must be less than or equal to {max}.',
+    isNotEmpty: 'Field {field} should not be empty.',
+    isEnum: 'Field {field} must be a valid enum value.',
+    isDate: 'Field {field} must be a valid date.',
+  },
+};

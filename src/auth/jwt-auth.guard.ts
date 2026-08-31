@@ -3,12 +3,13 @@ import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
+import type { UserRole } from '@generated/prisma';
 import { IS_PUBLIC_KEY } from './public.decorator';
 
 export type JwtAuthPayload = {
   sub: string;
   email: string;
-  role: string;
+  role: UserRole;
   type: 'access';
 };
 

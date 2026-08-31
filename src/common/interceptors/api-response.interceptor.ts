@@ -10,6 +10,8 @@ import type { Request, Response } from 'express';
 import { map, type Observable } from 'rxjs';
 import { SKIP_API_RESPONSE_KEY } from '@common/decorators/api-response.decorator';
 import type { ApiSuccessResponse, PaginationMeta } from '@common/http/api-response.types';
+import { I18nService } from '@common/i18n/i18n.service';
+import type { AppLocale } from '@common/i18n/i18n.types';
 import { isPaginatedResult, type PaginatedResult } from '@common/utils/pagination.util';
 
 @Injectable()
@@ -17,7 +19,10 @@ export class ApiResponseInterceptor<T> implements NestInterceptor<
   T,
   ApiSuccessResponse<unknown> | undefined
 > {
-  constructor(private readonly reflector: Reflector) {}
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly i18n: I18nService,
+  ) {}
 
   intercept(
     context: ExecutionContext,
@@ -34,6 +39,7 @@ export class ApiResponseInterceptor<T> implements NestInterceptor<
 
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
+    const locale = this.i18n.resolveLocale(request);
 
     return next.handle().pipe(
       map((result) => {
@@ -46,11 +52,17 @@ export class ApiResponseInterceptor<T> implements NestInterceptor<
             result.items,
             response.statusCode,
             request.originalUrl,
+            locale,
             this.createPaginationMeta(result),
           );
         }
 
-        return this.createResponse(result ?? null, response.statusCode, request.originalUrl);
+        return this.createResponse(
+          result ?? null,
+          response.statusCode,
+          request.originalUrl,
+          locale,
+        );
       }),
     );
   }
@@ -59,16 +71,19 @@ export class ApiResponseInterceptor<T> implements NestInterceptor<
     data: Data,
     statusCode: number,
     path: string,
+    locale: AppLocale,
     pagination?: PaginationMeta,
   ): ApiSuccessResponse<Data> {
+    const isCreated = statusCode === HttpStatus.CREATED;
+    const defaultMsg = isCreated
+      ? this.i18n.t('common.resourceCreated', locale)
+      : this.i18n.t('common.success', locale);
+
     return {
       success: true,
       statusCode,
-      code: statusCode === HttpStatus.CREATED ? 'RESOURCE_CREATED' : 'SUCCESS',
-      message:
-        statusCode === HttpStatus.CREATED
-          ? 'Resource created successfully.'
-          : 'Request completed successfully.',
+      code: isCreated ? 'RESOURCE_CREATED' : 'SUCCESS',
+      message: defaultMsg,
       data,
       ...(pagination ? { meta: { pagination } } : {}),
       timestamp: new Date().toISOString(),

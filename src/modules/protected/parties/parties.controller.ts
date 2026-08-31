@@ -1,5 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ProtectedApi } from '@auth/auth-api.decorator';
+import { Roles } from '@auth/roles.decorator';
+import { UserRole } from '@generated/prisma';
 import { PartiesService } from './parties.service';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { QueryPartiesDto } from './dto/query-parties.dto';
@@ -16,6 +18,7 @@ export class PartiesController {
   }
 
   @Post()
+  @Roles(UserRole.ADMIN, UserRole.ACCOUNTANT)
   create(@Body() body: CreatePartyDto) {
     return this.partiesService.create(body);
   }
@@ -26,11 +29,13 @@ export class PartiesController {
   }
 
   @Patch(':id')
+  @Roles(UserRole.ADMIN, UserRole.ACCOUNTANT)
   update(@Param('id') id: string, @Body() body: UpdatePartyDto) {
     return this.partiesService.update(id, body);
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMIN, UserRole.ACCOUNTANT)
   remove(@Param('id') id: string) {
     return this.partiesService.deactivate(id);
   }

@@ -77,24 +77,22 @@ npm run build
 
 ## Production Deploy
 
-Vercel runs the production build command configured in `vercel.json`:
+Vercel only builds the application artifact:
 
 ```bash
-npm run build:prod
+npm run build
 ```
 
-This command applies committed production migrations first, then generates Prisma Client and builds
-the API:
+Apply committed migrations as an explicit release step before promoting the deployment:
 
 ```text
 npm run db:deploy
-        ↓
 npm run build
 ```
 
 Configure `DATABASE_URL` and `DIRECT_URL` in the Vercel Production environment before deploying.
-Preview deployments must use a separate preview database or must not run this production build
-command against the production database.
+Preview deployments never run production migrations. This avoids concurrent builds or preview
+deployments changing the production schema.
 
 ## Rules
 
@@ -114,4 +112,4 @@ command against the production database.
 | `npm run db:check`    | Validate schema and generate client.         |
 | `npm run db:studio`   | Inspect database in Prisma Studio.           |
 | `npm run db:seed`     | Seed default admin user.                     |
-| `npm run build:prod`  | Apply migrations and build for production.   |
+| `npm run build:prod`  | Build the production artifact without migrating the database. |

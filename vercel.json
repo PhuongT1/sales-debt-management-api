@@ -1,12 +1,20 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
-  "buildCommand": "npm run build:prod",
+  "buildCommand": "npm run build",
   "functions": {
     "api/index.js": {
       "maxDuration": 30,
       "includeFiles": "dist/**"
     }
   },
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/docs",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",

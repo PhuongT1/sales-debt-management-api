@@ -1,4 +1,4 @@
-# Sales Debt Management API
+# DebtFlow API
 
 NestJS backend API for Debt Flow / Sales Debt Management.
 
@@ -45,14 +45,26 @@ cp .env.example .env
 npm run setup:dev
 ```
 
+For production configuration, use `.env.production.example` as the variable checklist. A real
+`.env.production` is ignored by Git. On Vercel, add the values in **Project Settings >
+Environment Variables** instead of uploading or committing an environment file.
+
+When running the compiled application outside Vercel with `NODE_ENV=production`, Nest loads
+`.env.production` first and falls back to `.env` for missing values.
+
+Database migrations are intentionally separate from the Vercel build. Before promoting a release
+that contains a new Prisma migration, run `npm run db:deploy` once against the production database,
+then deploy the API. Preview builds must never migrate the production database.
+
 Daily development:
 
 ```bash
 npm run dev
 ```
 
-`npm run setup:dev` performs the initial migration, generates Prisma Client, seeds the admin
-account, and starts NestJS. After setup, `npm run dev` starts NestJS in watch mode.
+`npm run setup:dev` performs the initial migration, generates Prisma Client, seeds the admin plus
+idempotent payment demo data, and starts NestJS. After setup, `npm run dev` starts NestJS in watch
+mode.
 
 ## Important Links
 
@@ -64,11 +76,14 @@ Swagger UI:    http://localhost:4000/docs
 OpenAPI JSON:  http://localhost:4000/docs-json
 ```
 
-Frontend API env:
+DebtFlow Shell server-side API env:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:4000/api
+API_BASE_URL=http://localhost:4000/api
 ```
+
+The browser calls the shell's same-origin BFF. Do not expose the backend URL with a
+`NEXT_PUBLIC_*` variable.
 
 ## Default Login
 
@@ -93,7 +108,7 @@ Role:     ADMIN
 | `npm run db:validate`    | Validate all Prisma schema files.                             |
 | `npm run db:check`       | Validate Prisma models and regenerate Prisma Client.          |
 | `npm run db:studio`      | Open Prisma Studio.                                           |
-| `npm run db:seed`        | Seed the default admin user.                                  |
+| `npm run db:seed`        | Seed the admin and idempotent payment demo data.              |
 | `npm run import:parties` | Import 100 demo customers/suppliers directly into PostgreSQL. |
 
 ## Changing Prisma Models
@@ -154,6 +169,7 @@ generates Prisma Client before compiling the application.
 - [Request Flow](docs/request-flow.md)
 - [Database Workflow](docs/database-workflow.md)
 - [Project Structure](docs/project-structure.md)
+- [Authentication And Authorization](docs/authorization.md)
 - [Validation And Errors](docs/validation-and-errors.md)
 - [Import Aliases](docs/import-aliases.md)
 - [Project Codex Skills](.codex/skills/SKILLS.md)
